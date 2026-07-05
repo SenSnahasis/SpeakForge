@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+/*
+  Theme tokens as RGB triplets (so Tailwind's opacity modifiers like
+  bg-bg-card/50 keep working). The `slate` scale is intentionally mirrored
+  between themes (light[N] === dark[1000-N]) so every existing
+  text-slate-* class in the app automatically gets the right contrast in
+  both modes without touching component files.
+*/
+:root {
+  --bg: 245 246 250;
+  --bg-soft: 238 240 246;
+  --bg-card: 255 255 255;
+  --bg-hover: 238 241 247;
+  --line: 15 23 42;
+
+  --slate-50: 2 6 23;
+  --slate-100: 15 23 42;
+  --slate-200: 30 41 59;
+  --slate-300: 51 65 85;
+  --slate-400: 71 85 105;
+  --slate-500: 100 116 139;
+  --slate-600: 148 163 184;
+  --slate-700: 203 213 225;
+  --slate-800: 226 232 240;
+  --slate-900: 241 245 249;
+  --slate-950: 248 250 252;
+
+  --shadow-card: 0 1px 0 rgb(15 23 42 / 0.04) inset, 0 12px 24px -12px rgb(15 23 42 / 0.12);
+  --scrollbar-thumb: 210 214 224;
+  --scrollbar-thumb-hover: 190 196 210;
+}
+
+.dark {
+  --bg: 11 15 25;
+  --bg-soft: 17 23 38;
+  --bg-card: 22 29 46;
+  --bg-hover: 28 36 56;
+  --line: 255 255 255;
+
+  --slate-50: 248 250 252;
+  --slate-100: 241 245 249;
+  --slate-200: 226 232 240;
+  --slate-300: 203 213 225;
+  --slate-400: 148 163 184;
+  --slate-500: 100 116 139;
+  --slate-600: 71 85 105;
+  --slate-700: 51 65 85;
+  --slate-800: 30 41 59;
+  --slate-900: 15 23 42;
+  --slate-950: 2 6 23;
+
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 24px -12px rgb(0 0 0 / 0.5);
+  --scrollbar-thumb: 38 48 73;
+  --scrollbar-thumb-hover: 50 64 101;
+}
+
+body {
+  background: radial-gradient(circle at 20% -10%, rgba(61, 107, 255, 0.12), transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(45, 212, 191, 0.08), transparent 40%), rgb(var(--bg));
+  min-height: 100vh;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--scrollbar-thumb));
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--scrollbar-thumb-hover));
+}
+
+.glass-card {
+  background: linear-gradient(180deg, rgb(var(--bg-card) / 0.9), rgb(var(--bg-soft) / 0.9));
+  border: 1px solid rgb(var(--line) / 0.06);
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #5c8bff, #2dd4bf);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

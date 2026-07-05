@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b0f19" />
+    <script>
+      // Apply the saved theme before anything paints, so there's no
+      // flash of the wrong theme while the app boots. Defaults to dark.
+      (function () {
+        try {
+          var theme = localStorage.getItem('speakforge-theme');
+          document.documentElement.classList.toggle('dark', theme !== 'light');
+        } catch (e) {}
+      })();
+    </script>
+    <title>SpeakForge — Speak English Confidently in 15 Minutes a Day</title>
+    <meta name="description" content="A focused, browser-only daily practice studio to help beginners speak English fluently and confidently." />
+  </head>
+  <body class="bg-bg text-slate-100 antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
