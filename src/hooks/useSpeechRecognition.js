@@ -5,6 +5,32 @@ function getRecognitionCtor() {
   return window.SpeechRecognition || window.webkitSpeechRecognition || null
 }
 
+const MAX_OVERLAP_WORDS = 8
+
+// When continuous-mode restarts on Android, the new session sometimes
+// genuinely re-transcribes a sliver of audio from just before the restart —
+// producing a "new" final result (by index) whose beginning duplicates the
+// tail of what's already been committed. This finds the longest word-level
+// overlap between the end of `existing` and the start of `incoming`, and
+// returns only the non-overlapping remainder of `incoming` to append.
+// Capped to a small window so it can only ever trim a short echo, never
+// swallow a genuinely new, coincidentally-repeated phrase.
+function trimOverlap(existing, incoming) {
+  const existingWords = existing.trim().split(/\s+/).filter(Boolean)
+  const incomingWords = incoming.trim().split(/\s+/).filter(Boolean)
+  if (!existingWords.length || !incomingWords.length) return incoming
+
+  const maxLen = Math.min(existingWords.length, incomingWords.length, MAX_OVERLAP_WORDS)
+  for (let len = maxLen; len > 0; len--) {
+    const tail = existingWords.slice(-len).join(' ').toLowerCase()
+    const head = incomingWords.slice(0, len).join(' ').toLowerCase()
+    if (tail === head) {
+      return incomingWords.slice(len).join(' ')
+    }
+  }
+  return incoming
+}
+
 export function useSpeechRecognition({ continuous = true, interimResults = true, lang = 'en-US' } = {}) {
   const Ctor = getRecognitionCtor()
   const recognitionRef = useRef(null)
@@ -38,7 +64,8 @@ export function useSpeechRecognition({ continuous = true, interimResults = true,
         const result = event.results[i]
         if (result.isFinal) {
           if (i >= committedCountRef.current) {
-            finalTranscriptRef.current += result[0].transcript + ' '
+            const toAppend = trimOverlap(finalTranscriptRef.current, result[0].transcript)
+            if (toAppend) finalTranscriptRef.current += toAppend + ' '
             committedCountRef.current = i + 1
           }
         } else {

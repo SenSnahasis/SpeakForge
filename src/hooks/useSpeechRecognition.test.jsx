@@ -104,4 +104,65 @@ describe('useSpeechRecognition', () => {
     })
     expect(result.current.transcript).toBe('second attempt')
   })
+
+    it('trims a re-transcribed overlap when a restart genuinely re-hears the tail of the previous session', () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() => useSpeechRecognition({ continuous: true }))
+    act(() => result.current.start())
+
+    act(() => {
+      lastInstance.onresult({ resultIndex: 0, results: [finalResult('like what kind of engine')] })
+    })
+    expect(result.current.transcript).toBe('like what kind of engine')
+
+    act(() => lastInstance.onend())
+    act(() => vi.advanceTimersByTime(300))
+
+    // The new session's own index 0 is a *distinct* result object from a
+    // genuinely different session, but its content re-hears the tail of what
+    // was already committed ("like what kind of engine") before continuing
+    // with real new speech ("you are using"). Naive index-based dedup alone
+    // cannot catch this since it's a fresh index in a fresh session.
+    act(() => {
+      lastInstance.onresult({ resultIndex: 0, results: [finalResult('like what kind of engine you are using')] })
+    })
+
+    expect(result.current.transcript).toBe('like what kind of engine you are using')
+  })
+
+  it('reproduces the reported stutter pattern across several restarts and confirms it stays clean', () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() => useSpeechRecognition({ continuous: true }))
+    act(() => result.current.start())
+
+    const chunks = ['like', 'like what', 'like what kind', 'like what kind of engine', 'like what kind of engine you are using']
+    chunks.forEach((chunk, i) => {
+      act(() => {
+        lastInstance.onresult({ resultIndex: 0, results: [finalResult(chunk)] })
+      })
+      if (i < chunks.length - 1) {
+        act(() => lastInstance.onend())
+        act(() => vi.advanceTimersByTime(300))
+      }
+    })
+
+    expect(result.current.transcript).toBe('like what kind of engine you are using')
+  })
+
+  it('does not trim genuinely non-overlapping content across a restart', () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() => useSpeechRecognition({ continuous: true }))
+    act(() => result.current.start())
+
+    act(() => {
+      lastInstance.onresult({ resultIndex: 0, results: [finalResult('I went to the market')] })
+    })
+    act(() => lastInstance.onend())
+    act(() => vi.advanceTimersByTime(300))
+    act(() => {
+      lastInstance.onresult({ resultIndex: 0, results: [finalResult('and bought some apples')] })
+    })
+
+    expect(result.current.transcript).toBe('I went to the market and bought some apples')
+  })
 })
